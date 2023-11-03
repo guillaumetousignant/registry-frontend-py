@@ -1,0 +1,10 @@
+[project]
+name = "Registry Frontend Python"
+version = "1.0.0"
+[tool.black]
+line-length = 160
+target-version = ['py312']
+include = '\.pyi?$'
+[tool.pyright]
+pythonVersion = "3.12"
+typeCheckingMode = "strict"
