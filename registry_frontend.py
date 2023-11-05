@@ -200,6 +200,10 @@ def unassign(args: argparse.Namespace, console: Console):
     unassign_item(url, token, console, args.id)
 
 
+def registry_frontend(args: argparse.Namespace, console: Console):
+    print("NOOT NOOT")
+
+
 def main(argv: list[str]):
     install(show_locals=True)
 
@@ -218,11 +222,11 @@ def main(argv: list[str]):
         help="server url to use",
     )
     parser.add_argument("-v", "--version", action="version", version="%(prog)s 1.0.0")
+    parser.set_defaults(func=registry_frontend)
     subparsers = parser.add_subparsers(
         title="subcommands",
         description="valid subcommands",
         help="choose one of these commands to send to the server",
-        required=True,
     )
     view_subparser = subparsers.add_parser("view")
     view_subparser.set_defaults(func=view)
