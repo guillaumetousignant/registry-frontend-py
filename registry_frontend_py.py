@@ -154,7 +154,7 @@ def unassign_item(url: str, token: str, console: Console, id: Optional[int]):
         id = int(Prompt.ask("[yellow]Enter item id[/yellow]", choices=ids))
 
     request = requests.post(
-        f"{url}/api/v1/items/{id}/unassign",
+        f"{url}/api/v1/items/{id}/unclaim",
         headers={"Authorization": f"Bearer {token}"},
     )
 
