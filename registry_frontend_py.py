@@ -5,6 +5,8 @@ import argparse
 from pathlib import Path
 import os
 from typing import Optional
+import requests
+from dotenv import load_dotenv
 
 
 def get_password(input_password: Optional[str]) -> str:
@@ -17,30 +19,51 @@ def get_password(input_password: Optional[str]) -> str:
     return password
 
 
-def view_items(password: str):
-    pass
+def get_token(url: str, password: str) -> str:
+    r = requests.get(url + "/api/v1/authorize/admin", auth=("py_frontend", password))
+    if not r.ok:
+        raise RuntimeError("Received error when asking for token")
+    print(r)
+
+
+def view_items(url: str, password: str):
+    token = get_token(url, password)
+
+
+def add_item(url: str, password: str):
+    token = get_token(url, password)
+
+
+def assign_item(url: str, password: str):
+    token = get_token(url, password)
+
+
+def delete_item(url: str, password: str):
+    token = get_token(url, password)
 
 
 def view(args: argparse.Namespace):
     password = get_password(args.password)
     url = args.url
-    print("view")
-    print(args)
+    view_items(url, password)
 
 
 def add(args: argparse.Namespace):
-    print("add")
-    print(args)
+    password = get_password(args.password)
+    url = args.url
+    add_item(url, password)
 
 
 def assign(args: argparse.Namespace):
-    print("assign")
-    print(args)
+    password = get_password(args.password)
+    url = args.url
+    assign_item(url, password)
 
 
 def delete(args: argparse.Namespace):
-    print("delete")
-    print(args)
+    password = get_password(args.password)
+    url = args.url
+    delete_item(url, password)
 
 
 def main(argv: list[str]):
@@ -55,7 +78,7 @@ def main(argv: list[str]):
         "-u",
         "--url",
         type=str,
-        default="api.arietguillaume.ca",
+        default="https://api.arietguillaume.ca",
         help="server url to use",
     )
     parser.add_argument("-v", "--version", action="version", version="%(prog)s 1.0.0")
@@ -75,6 +98,9 @@ def main(argv: list[str]):
     delete_subparser.set_defaults(func=delete)
 
     args = parser.parse_args(argv)
+
+    load_dotenv()
+
     args.func(args)
 
 

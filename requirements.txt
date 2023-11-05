@@ -1,2 +1,4 @@
 black
 pyright
+requests
+python-dotenv
