@@ -10,6 +10,7 @@ from dotenv import load_dotenv
 from rich.console import Console
 from rich.table import Table
 from rich.prompt import Prompt
+from rich.traceback import install
 
 
 def get_password(input_password: Optional[str]) -> str:
@@ -200,6 +201,8 @@ def unassign(args: argparse.Namespace, console: Console):
 
 
 def main(argv: list[str]):
+    install(show_locals=True)
+
     parser = argparse.ArgumentParser(
         prog="Registry Frontend Python",
         description="Terminal frontend for the registry, written in python.",
