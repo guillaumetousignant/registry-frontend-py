@@ -7,6 +7,8 @@ import os
 from typing import Optional
 import requests
 from dotenv import load_dotenv
+from rich.console import Console
+from rich.table import Table
 
 
 def get_password(input_password: Optional[str]) -> str:
@@ -26,61 +28,72 @@ def get_token(url: str, password: str) -> str:
     return r.text  # content is bytes, text is str
 
 
-def view_items(url: str, token: str):
+def view_items(url: str, token: str, console: Console):
     items_request = requests.get(
         f"{url}/api/v1/items", headers={"Authorization": f"Bearer {token}"}
     )
 
     items = items_request.json()["data"]
-    ID_FIELD_WIDTH = 8
-    NAME_FIELD_WIDTH = 32
-    COLOUR_FIELD_WIDTH = 16
-    LINK_FIELD_WIDTH = 32
-    ASSIGNED_FIELD_WIDTH = 16
-    print(f"{"id": <{ID_FIELD_WIDTH}} {"name": <{NAME_FIELD_WIDTH}} {"colour": <{COLOUR_FIELD_WIDTH}} {"link": <{LINK_FIELD_WIDTH}} {"assigned": <{ASSIGNED_FIELD_WIDTH}}")
+
+    table = Table(title="Items")
+    table.add_column("ID", style="bold yellow", no_wrap=True)
+    table.add_column("Name", no_wrap=True)
+    table.add_column("Colour", no_wrap=True)
+    table.add_column("Link", style="cyan")
+    table.add_column("Assigned", no_wrap=True)
+
     for item in items:
-        print(f"{item["id"]: <{ID_FIELD_WIDTH}} {item["name"]: <{NAME_FIELD_WIDTH}} {item["colour"]: <{COLOUR_FIELD_WIDTH}} {item["link"]: <{LINK_FIELD_WIDTH}} {item["assigned"] if item["assigned"] is not None else "unassigned": <{ASSIGNED_FIELD_WIDTH}}")
+        table.add_row(
+            str(item["id"]),
+            item["name"],
+            item["colour"],
+            item["link"],
+            item["assigned"]
+            if item["assigned"] is not None
+            else "[bold reverse]unassigned[/bold reverse]",
+        )
+
+    console.print(table)
 
 
-
-def add_item(url: str, token: str):
+def add_item(url: str, token: str, console: Console):
     pass
 
 
-def assign_item(url: str, token: str):
+def assign_item(url: str, token: str, console: Console):
     pass
 
 
-def delete_item(url: str, token: str):
+def delete_item(url: str, token: str, console: Console):
     pass
 
 
-def view(args: argparse.Namespace):
+def view(args: argparse.Namespace, console: Console):
     password = get_password(args.password)
     url = args.url
     token = get_token(url, password)
-    view_items(url, token)
+    view_items(url, token, console)
 
 
-def add(args: argparse.Namespace):
+def add(args: argparse.Namespace, console: Console):
     password = get_password(args.password)
     url = args.url
     token = get_token(url, password)
-    add_item(url, token)
+    add_item(url, token, console)
 
 
-def assign(args: argparse.Namespace):
+def assign(args: argparse.Namespace, console: Console):
     password = get_password(args.password)
     url = args.url
     token = get_token(url, password)
-    assign_item(url, token)
+    assign_item(url, token, console)
 
 
-def delete(args: argparse.Namespace):
+def delete(args: argparse.Namespace, console: Console):
     password = get_password(args.password)
     url = args.url
-    token = get_token(url, token)
-    delete_item(url, token)
+    token = get_token(url, password)
+    delete_item(url, token, console)
 
 
 def main(argv: list[str]):
@@ -117,8 +130,9 @@ def main(argv: list[str]):
     args = parser.parse_args(argv)
 
     load_dotenv()
+    console = Console()
 
-    args.func(args)
+    args.func(args, console)
 
 
 if __name__ == "__main__":
