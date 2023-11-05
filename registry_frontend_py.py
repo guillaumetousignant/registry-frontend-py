@@ -119,13 +119,49 @@ def assign_item(
     )
 
     if not request.ok:
-        raise RuntimeError("Received error when adding item")
+        raise RuntimeError("Received error when claiming item")
     else:
         console.print("[green]Successfully claimed item[/green]")
 
 
-def delete_item(url: str, token: str, console: Console):
-    pass
+def delete_item(url: str, token: str, console: Console, id: Optional[int]):
+    items_request = requests.get(
+        f"{url}/api/v1/items", headers={"Authorization": f"Bearer {token}"}
+    )
+    ids = [str(item["id"]) for item in items_request.json()["data"]]
+
+    if id is None:
+        id = int(Prompt.ask("[yellow]Enter item id[/yellow]", choices=ids))
+
+    request = requests.post(
+        f"{url}/api/v1/items/{id}/delete",
+        headers={"Authorization": f"Bearer {token}"},
+    )
+
+    if not request.ok:
+        raise RuntimeError("Received error when deleting item")
+    else:
+        console.print("[green]Successfully claimed item[/green]")
+
+
+def unassign_item(url: str, token: str, console: Console, id: Optional[int]):
+    items_request = requests.get(
+        f"{url}/api/v1/items", headers={"Authorization": f"Bearer {token}"}
+    )
+    ids = [str(item["id"]) for item in items_request.json()["data"]]
+
+    if id is None:
+        id = int(Prompt.ask("[yellow]Enter item id[/yellow]", choices=ids))
+
+    request = requests.post(
+        f"{url}/api/v1/items/{id}/unassign",
+        headers={"Authorization": f"Bearer {token}"},
+    )
+
+    if not request.ok:
+        raise RuntimeError("Received error when unassigning item")
+    else:
+        console.print("[green]Successfully unassigned item[/green]")
 
 
 def view(args: argparse.Namespace, console: Console):
@@ -153,7 +189,14 @@ def delete(args: argparse.Namespace, console: Console):
     password = get_password(args.password)
     url = args.url
     token = get_token(url, password)
-    delete_item(url, token, console)
+    delete_item(url, token, console, args.id)
+
+
+def unassign(args: argparse.Namespace, console: Console):
+    password = get_password(args.password)
+    url = args.url
+    token = get_token(url, password)
+    unassign_item(url, token, console, args.id)
 
 
 def main(argv: list[str]):
@@ -221,7 +264,21 @@ def main(argv: list[str]):
     )
     assign_subparser.set_defaults(func=assign)
     delete_subparser = subparsers.add_parser("delete")
+    delete_subparser.add_argument(
+        "-i",
+        "--id",
+        type=int,
+        help="item id",
+    )
     delete_subparser.set_defaults(func=delete)
+    unassign_subparser = subparsers.add_parser("unassign")
+    unassign_subparser.add_argument(
+        "-i",
+        "--id",
+        type=int,
+        help="item id",
+    )
+    unassign_subparser.set_defaults(func=unassign)
 
     args = parser.parse_args(argv)
 
