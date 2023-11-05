@@ -142,7 +142,7 @@ def delete_item(url: str, token: str, console: Console, id: Optional[int]):
     if not request.ok:
         raise RuntimeError("Received error when deleting item")
     else:
-        console.print("[green]Successfully claimed item[/green]")
+        console.print("[green]Successfully deleted item[/green]")
 
 
 def unassign_item(url: str, token: str, console: Console, id: Optional[int]):
