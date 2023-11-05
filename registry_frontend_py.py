@@ -71,18 +71,14 @@ def add_item(
     link: Optional[str],
     assigned: Optional[str],
 ):
-    name = name if name is not None else Prompt.ask("[yellow]Enter item name[/yellow]")
-    colour = (
-        colour
-        if colour is not None
-        else Prompt.ask("[yellow]Enter item colour[/yellow]")
-    )
-    link = link if link is not None else Prompt.ask("[yellow]Enter item link[/yellow]")
-    assigned = (
-        assigned
-        if assigned is not None
-        else Prompt.ask("[yellow]Enter item assigned[/yellow]", default=None)
-    )
+    if name is None:
+        name = Prompt.ask("[yellow]Enter item name[/yellow]")
+    if colour is None:
+        colour = Prompt.ask("[yellow]Enter item colour[/yellow]")
+    if link is None:
+        link = Prompt.ask("[yellow]Enter item link[/yellow]")
+    if assigned is None:
+        assigned = Prompt.ask("[yellow]Enter item assigned[/yellow]", default=None)
 
     request = requests.post(
         f"{url}/api/v1/items/add",
@@ -101,8 +97,31 @@ def add_item(
         console.print("[green]Successfully added item[/green]")
 
 
-def assign_item(url: str, token: str, console: Console):
-    pass
+def assign_item(
+    url: str, token: str, console: Console, id: Optional[int], assigned: Optional[str]
+):
+    items_request = requests.get(
+        f"{url}/api/v1/items", headers={"Authorization": f"Bearer {token}"}
+    )
+    ids = [str(item["id"]) for item in items_request.json()["data"]]
+
+    if id is None:
+        id = int(Prompt.ask("[yellow]Enter item id[/yellow]", choices=ids))
+    if assigned is None:
+        assigned = Prompt.ask("[yellow]Enter item assigned[/yellow]")
+
+    request = requests.post(
+        f"{url}/api/v1/items/{id}/claim",
+        headers={"Authorization": f"Bearer {token}"},
+        json={
+            "assigned": assigned,
+        },
+    )
+
+    if not request.ok:
+        raise RuntimeError("Received error when adding item")
+    else:
+        console.print("[green]Successfully claimed item[/green]")
 
 
 def delete_item(url: str, token: str, console: Console):
@@ -127,7 +146,7 @@ def assign(args: argparse.Namespace, console: Console):
     password = get_password(args.password)
     url = args.url
     token = get_token(url, password)
-    assign_item(url, token, console)
+    assign_item(url, token, console, args.id, args.assigned)
 
 
 def delete(args: argparse.Namespace, console: Console):
@@ -188,6 +207,18 @@ def main(argv: list[str]):
     )
     add_subparser.set_defaults(func=add)
     assign_subparser = subparsers.add_parser("assign")
+    assign_subparser.add_argument(
+        "-i",
+        "--id",
+        type=int,
+        help="item id",
+    )
+    assign_subparser.add_argument(
+        "-a",
+        "--assigned",
+        type=str,
+        help="item assigned",
+    )
     assign_subparser.set_defaults(func=assign)
     delete_subparser = subparsers.add_parser("delete")
     delete_subparser.set_defaults(func=delete)
