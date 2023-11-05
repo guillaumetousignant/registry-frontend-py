@@ -200,8 +200,40 @@ def unassign(args: argparse.Namespace, console: Console):
     unassign_item(url, token, console, args.id)
 
 
-def registry_frontend(args: argparse.Namespace, console: Console):
-    print("NOOT NOOT")
+def registry_frontend(url: str, token: str, console: Console, password: str):
+    while True:
+        console.print(
+            "[bold]1. View\n2. Add\n3. Assign\n4. Delete\n5. Unassign\n6. Token\n7. Exit[/bold]"
+        )
+        action = Prompt.ask(
+            "[yellow]Choose action[/yellow]",
+            choices=["1", "2", "3", "4", "5", "6", "7"],
+            default="1",
+        )
+        match action:
+            case "1":
+                view_items(url, token, console)
+            case "2":
+                add_item(url, token, console, None, None, None, None)
+            case "3":
+                assign_item(url, token, console, None, None)
+            case "4":
+                delete_item(url, token, console, None)
+            case "5":
+                unassign_item(url, token, console, None)
+            case "6":
+                token = get_token(url, password)
+            case "7":
+                break
+            case _:
+                pass
+
+
+def registry_frontend_interactive(args: argparse.Namespace, console: Console):
+    password = get_password(args.password)
+    url = args.url
+    token = get_token(url, password)
+    registry_frontend(url, token, console, password)
 
 
 def main(argv: list[str]):
@@ -222,7 +254,7 @@ def main(argv: list[str]):
         help="server url to use",
     )
     parser.add_argument("-v", "--version", action="version", version="%(prog)s 1.0.0")
-    parser.set_defaults(func=registry_frontend)
+    parser.set_defaults(func=registry_frontend_interactive)
     subparsers = parser.add_subparsers(
         title="subcommands",
         description="valid subcommands",
