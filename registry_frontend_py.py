@@ -9,6 +9,7 @@ import requests
 from dotenv import load_dotenv
 from rich.console import Console
 from rich.table import Table
+from rich.prompt import Prompt
 
 
 def get_password(input_password: Optional[str]) -> str:
@@ -22,18 +23,23 @@ def get_password(input_password: Optional[str]) -> str:
 
 
 def get_token(url: str, password: str) -> str:
-    r = requests.get(f"{url}/api/v1/authorize/admin", auth=("py_frontend", password))
-    if not r.ok:
+    request = requests.get(
+        f"{url}/api/v1/authorize/admin", auth=("py_frontend", password)
+    )
+    if not request.ok:
         raise RuntimeError("Received error when asking for token")
-    return r.text  # content is bytes, text is str
+    return request.text  # content is bytes, text is str
 
 
 def view_items(url: str, token: str, console: Console):
-    items_request = requests.get(
+    request = requests.get(
         f"{url}/api/v1/items", headers={"Authorization": f"Bearer {token}"}
     )
 
-    items = items_request.json()["data"]
+    if not request.ok:
+        raise RuntimeError("Received error when asking for items")
+
+    items = request.json()["data"]
 
     table = Table(title="Items")
     table.add_column("ID", style="bold yellow", no_wrap=True)
@@ -63,8 +69,36 @@ def add_item(
     name: Optional[str],
     colour: Optional[str],
     link: Optional[str],
+    assigned: Optional[str],
 ):
-    pass
+    name = name if name is not None else Prompt.ask("[yellow]Enter item name[/yellow]")
+    colour = (
+        colour
+        if colour is not None
+        else Prompt.ask("[yellow]Enter item colour[/yellow]")
+    )
+    link = link if link is not None else Prompt.ask("[yellow]Enter item link[/yellow]")
+    assigned = (
+        assigned
+        if assigned is not None
+        else Prompt.ask("[yellow]Enter item assigned[/yellow]", default=None)
+    )
+
+    request = requests.post(
+        f"{url}/api/v1/items/add",
+        headers={"Authorization": f"Bearer {token}"},
+        json={
+            "name": name,
+            "colour": colour,
+            "link": link,
+            "assigned": assigned,
+        },
+    )
+
+    if not request.ok:
+        raise RuntimeError("Received error when asking for items")
+    else:
+        console.print("[green]Successfully added item[/green]")
 
 
 def assign_item(url: str, token: str, console: Console):
@@ -86,7 +120,7 @@ def add(args: argparse.Namespace, console: Console):
     password = get_password(args.password)
     url = args.url
     token = get_token(url, password)
-    add_item(url, token, console)
+    add_item(url, token, console, args.name, args.colour, args.link, args.assigned)
 
 
 def assign(args: argparse.Namespace, console: Console):
@@ -128,6 +162,30 @@ def main(argv: list[str]):
     view_subparser = subparsers.add_parser("view")
     view_subparser.set_defaults(func=view)
     add_subparser = subparsers.add_parser("add")
+    add_subparser.add_argument(
+        "-n",
+        "--name",
+        type=str,
+        help="item name",
+    )
+    add_subparser.add_argument(
+        "-c",
+        "--colour",
+        type=str,
+        help="item colour",
+    )
+    add_subparser.add_argument(
+        "-l",
+        "--link",
+        type=str,
+        help="item link",
+    )
+    add_subparser.add_argument(
+        "-a",
+        "--assigned",
+        type=str,
+        help="item assigned",
+    )
     add_subparser.set_defaults(func=add)
     assign_subparser = subparsers.add_parser("assign")
     assign_subparser.set_defaults(func=assign)
