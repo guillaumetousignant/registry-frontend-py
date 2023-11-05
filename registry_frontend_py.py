@@ -47,7 +47,7 @@ def view_items(url: str, token: str, console: Console):
             str(item["id"]),
             item["name"],
             item["colour"],
-            item["link"],
+            f'[link={item["link"]}]{item["link"]}[/link]',
             item["assigned"]
             if item["assigned"] is not None
             else "[bold reverse]unassigned[/bold reverse]",
@@ -56,7 +56,14 @@ def view_items(url: str, token: str, console: Console):
     console.print(table)
 
 
-def add_item(url: str, token: str, console: Console):
+def add_item(
+    url: str,
+    token: str,
+    console: Console,
+    name: Optional[str],
+    colour: Optional[str],
+    link: Optional[str],
+):
     pass
 
 
