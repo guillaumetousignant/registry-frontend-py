@@ -19,11 +19,11 @@ def get_password(input_password: Optional[str]) -> str:
     return password
 
 
-def get_token(url: str, password: str) -> str:
+def get_token(url: str, password: str) -> bytes:
     r = requests.get(url + "/api/v1/authorize/admin", auth=("py_frontend", password))
     if not r.ok:
         raise RuntimeError("Received error when asking for token")
-    print(r)
+    return r.content  # This is bytes, text is str
 
 
 def view_items(url: str, password: str):
