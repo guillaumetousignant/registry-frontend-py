@@ -19,51 +19,68 @@ def get_password(input_password: Optional[str]) -> str:
     return password
 
 
-def get_token(url: str, password: str) -> bytes:
-    r = requests.get(url + "/api/v1/authorize/admin", auth=("py_frontend", password))
+def get_token(url: str, password: str) -> str:
+    r = requests.get(f"{url}/api/v1/authorize/admin", auth=("py_frontend", password))
     if not r.ok:
         raise RuntimeError("Received error when asking for token")
-    return r.content  # This is bytes, text is str
+    return r.text  # content is bytes, text is str
 
 
-def view_items(url: str, password: str):
-    token = get_token(url, password)
+def view_items(url: str, token: str):
+    items_request = requests.get(
+        f"{url}/api/v1/items", headers={"Authorization": f"Bearer {token}"}
+    )
+
+    items = items_request.json()["data"]
+    ID_FIELD_WIDTH = 8
+    NAME_FIELD_WIDTH = 32
+    COLOUR_FIELD_WIDTH = 16
+    LINK_FIELD_WIDTH = 32
+    ASSIGNED_FIELD_WIDTH = 16
+    print(f"{"id": <{ID_FIELD_WIDTH}} {"name": <{NAME_FIELD_WIDTH}} {"colour": <{COLOUR_FIELD_WIDTH}} {"link": <{LINK_FIELD_WIDTH}} {"assigned": <{ASSIGNED_FIELD_WIDTH}}")
+    for item in items:
+        print(f"{item["id"]: <{ID_FIELD_WIDTH}} {item["name"]: <{NAME_FIELD_WIDTH}} {item["colour"]: <{COLOUR_FIELD_WIDTH}} {item["link"]: <{LINK_FIELD_WIDTH}} {item["assigned"] if item["assigned"] is not None else "unassigned": <{ASSIGNED_FIELD_WIDTH}}")
 
 
-def add_item(url: str, password: str):
-    token = get_token(url, password)
+
+def add_item(url: str, token: str):
+    pass
 
 
-def assign_item(url: str, password: str):
-    token = get_token(url, password)
+def assign_item(url: str, token: str):
+    pass
 
 
-def delete_item(url: str, password: str):
-    token = get_token(url, password)
+def delete_item(url: str, token: str):
+    pass
 
 
 def view(args: argparse.Namespace):
     password = get_password(args.password)
     url = args.url
-    view_items(url, password)
+    token = get_token(url, password)
+    view_items(url, token)
 
 
 def add(args: argparse.Namespace):
     password = get_password(args.password)
     url = args.url
-    add_item(url, password)
+    token = get_token(url, password)
+    add_item(url, token)
 
 
 def assign(args: argparse.Namespace):
     password = get_password(args.password)
     url = args.url
-    assign_item(url, password)
+    token = get_token(url, password)
+    assign_item(url, token)
 
 
 def delete(args: argparse.Namespace):
     password = get_password(args.password)
     url = args.url
-    delete_item(url, password)
+    token = get_token(url, token)
+    delete_item(url, token)
 
 
 def main(argv: list[str]):
