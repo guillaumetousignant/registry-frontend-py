@@ -109,7 +109,9 @@ def assign_item(
     if id is None:
         id = int(Prompt.ask("[yellow]Enter item id[/yellow]", choices=ids))
     if assigned is None:
-        assigned = Prompt.ask("[yellow]Enter item assigned[/yellow]")
+        assigned = Prompt.ask(
+            "[yellow]Enter item assigned, or leave empty for unassigned[/yellow]"
+        )
 
     request = requests.post(
         f"{url}/api/v1/items/{id}/claim",
