@@ -13,6 +13,11 @@ from rich.prompt import Prompt
 from rich.traceback import install
 
 
+class UnauthorizedException(Exception):
+    "Raised when a request is rejected with an unauthorized code"
+    pass
+
+
 def get_password(input_password: Optional[str]) -> str:
     env_password = os.environ.get("ADMIN_PASSWORD")
     password = input_password if input_password is not None else env_password
@@ -38,7 +43,10 @@ def view_items(url: str, token: str, console: Console):
     )
 
     if not request.ok:
-        raise RuntimeError("Received error when asking for items")
+        if request.status_code == 401:
+            raise UnauthorizedException
+        else:
+            raise RuntimeError("Received error when asking for items")
 
     items = request.json()["data"]
 
@@ -93,7 +101,10 @@ def add_item(
     )
 
     if not request.ok:
-        raise RuntimeError("Received error when asking for items")
+        if request.status_code == 401:
+            raise UnauthorizedException
+        else:
+            raise RuntimeError("Received error when adding item")
     else:
         console.print("[green]Successfully added item[/green]")
 
@@ -122,7 +133,10 @@ def assign_item(
     )
 
     if not request.ok:
-        raise RuntimeError("Received error when claiming item")
+        if request.status_code == 401:
+            raise UnauthorizedException
+        else:
+            raise RuntimeError("Received error when claiming item")
     else:
         console.print("[green]Successfully claimed item[/green]")
 
@@ -142,7 +156,10 @@ def delete_item(url: str, token: str, console: Console, id: Optional[int]):
     )
 
     if not request.ok:
-        raise RuntimeError("Received error when deleting item")
+        if request.status_code == 401:
+            raise UnauthorizedException
+        else:
+            raise RuntimeError("Received error when deleting item")
     else:
         console.print("[green]Successfully deleted item[/green]")
 
@@ -162,7 +179,10 @@ def unassign_item(url: str, token: str, console: Console, id: Optional[int]):
     )
 
     if not request.ok:
-        raise RuntimeError("Received error when unassigning item")
+        if request.status_code == 401:
+            raise UnauthorizedException
+        else:
+            raise RuntimeError("Received error when unassigning item")
     else:
         console.print("[green]Successfully unassigned item[/green]")
 
@@ -204,31 +224,36 @@ def unassign(args: argparse.Namespace, console: Console):
 
 def registry_frontend(url: str, token: str, console: Console, password: str):
     while True:
-        console.print(
-            "[bold]1. View\n2. Add\n3. Assign\n4. Delete\n5. Unassign\n6. Token\n7. Exit[/bold]"
-        )
-        action = Prompt.ask(
-            "[yellow]Choose action[/yellow]",
-            choices=["1", "2", "3", "4", "5", "6", "7"],
-            default="1",
-        )
-        match action:
-            case "1":
-                view_items(url, token, console)
-            case "2":
-                add_item(url, token, console, None, None, None, None)
-            case "3":
-                assign_item(url, token, console, None, None)
-            case "4":
-                delete_item(url, token, console, None)
-            case "5":
-                unassign_item(url, token, console, None)
-            case "6":
-                token = get_token(url, password)
-            case "7":
-                break
-            case _:
-                pass
+        try:
+            console.print(
+                "[bold]1. View\n2. Add\n3. Assign\n4. Delete\n5. Unassign\n6. Token\n7. Exit[/bold]"
+            )
+            action = Prompt.ask(
+                "[yellow]Choose action[/yellow]",
+                choices=["1", "2", "3", "4", "5", "6", "7"],
+                default="1",
+            )
+            match action:
+                case "1":
+                    view_items(url, token, console)
+                case "2":
+                    add_item(url, token, console, None, None, None, None)
+                case "3":
+                    assign_item(url, token, console, None, None)
+                case "4":
+                    delete_item(url, token, console, None)
+                case "5":
+                    unassign_item(url, token, console, None)
+                case "6":
+                    token = get_token(url, password)
+                    console.print("[green]Successfully refreshed token[/green]")
+                case "7":
+                    break
+                case _:
+                    pass
+        except UnauthorizedException:
+            console.print("[red]Token expired, try again[/red]")
+            token = get_token(url, password)
 
 
 def registry_frontend_interactive(args: argparse.Namespace, console: Console):
