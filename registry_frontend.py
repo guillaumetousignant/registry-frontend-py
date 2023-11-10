@@ -351,7 +351,11 @@ def main(argv: list[str]):
     load_dotenv()
     console = Console()
 
-    args.func(args, console)
+    try:
+        args.func(args, console)
+    except KeyboardInterrupt:
+        console.print("[blue]Received keyboard interrupt[/blue]")
+        return
 
 
 if __name__ == "__main__":
