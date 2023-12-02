@@ -251,6 +251,7 @@ def registry_frontend(url: str, token: str, console: Console, password: str):
                     break
                 case _:
                     pass
+            console.print("")
         except UnauthorizedException:
             console.print("[red]Token expired, try again[/red]")
             token = get_token(url, password)
