@@ -187,6 +187,36 @@ def unassign_item(url: str, token: str, console: Console, id: Optional[int]):
         console.print("[green]Successfully unassigned item[/green]")
 
 
+def link_item(
+    url: str, token: str, console: Console, id: Optional[int], link: Optional[str]
+):
+    items_request = requests.get(
+        f"{url}/api/v1/items", headers={"Authorization": f"Bearer {token}"}
+    )
+    ids = [str(item["id"]) for item in items_request.json()["data"]]
+
+    if id is None:
+        id = int(Prompt.ask("[yellow]Enter item id[/yellow]", choices=ids))
+    if link is None:
+        link = Prompt.ask("[yellow]Enter item link[/yellow]")
+
+    request = requests.post(
+        f"{url}/api/v1/items/{id}/link",
+        headers={"Authorization": f"Bearer {token}"},
+        json={
+            "link": link,
+        },
+    )
+
+    if not request.ok:
+        if request.status_code == 401:
+            raise UnauthorizedException
+        else:
+            raise RuntimeError("Received error when updating item link")
+    else:
+        console.print("[green]Successfully updated item link[/green]")
+
+
 def view(args: argparse.Namespace, console: Console):
     password = get_password(args.password)
     url = args.url
@@ -222,15 +252,22 @@ def unassign(args: argparse.Namespace, console: Console):
     unassign_item(url, token, console, args.id)
 
 
+def link(args: argparse.Namespace, console: Console):
+    password = get_password(args.password)
+    url = args.url
+    token = get_token(url, password)
+    link_item(url, token, console, args.id, args.link)
+
+
 def registry_frontend(url: str, token: str, console: Console, password: str):
     while True:
         try:
             console.print(
-                "[bold]1. View\n2. Add\n3. Assign\n4. Delete\n5. Unassign\n6. Token\n7. Exit[/bold]"
+                "[bold]1. View\n2. Add\n3. Assign\n4. Delete\n5. Unassign\n6. Link\n7. Token\n8. Exit[/bold]"
             )
             action = Prompt.ask(
                 "[yellow]Choose action[/yellow]",
-                choices=["1", "2", "3", "4", "5", "6", "7"],
+                choices=["1", "2", "3", "4", "5", "6", "7", "8"],
                 default="1",
             )
             match action:
@@ -245,9 +282,11 @@ def registry_frontend(url: str, token: str, console: Console, password: str):
                 case "5":
                     unassign_item(url, token, console, None)
                 case "6":
+                    link_item(url, token, console, None, None)
+                case "7":
                     token = get_token(url, password)
                     console.print("[green]Successfully refreshed token[/green]")
-                case "7":
+                case "8":
                     break
                 case _:
                     pass
@@ -346,6 +385,20 @@ def main(argv: list[str]):
         help="item id",
     )
     unassign_subparser.set_defaults(func=unassign)
+    link_subparser = subparsers.add_parser("link")
+    link_subparser.add_argument(
+        "-i",
+        "--id",
+        type=int,
+        help="item id",
+    )
+    link_subparser.add_argument(
+        "-l",
+        "--link",
+        type=str,
+        help="item link",
+    )
+    link_subparser.set_defaults(func=link)
 
     args = parser.parse_args(argv)
 

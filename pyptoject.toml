@@ -1,6 +1,6 @@
 [project]
 name = "Registry Frontend Python"
-version = "1.0.0"
+version = "1.0.1"
 [tool.black]
 line-length = 160
 target-version = ['py312']
