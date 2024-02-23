@@ -307,8 +307,8 @@ def main(argv: list[str]):
     install(show_locals=True)
 
     parser = argparse.ArgumentParser(
-        prog="Registry Frontend Python",
         description="Terminal frontend for the registry, written in python.",
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
     parser.add_argument(
         "-p", "--password", type=Path, help="password to use to get token from server"
@@ -327,9 +327,13 @@ def main(argv: list[str]):
         description="valid subcommands",
         help="choose one of these commands to send to the server",
     )
-    view_subparser = subparsers.add_parser("view")
+    view_subparser = subparsers.add_parser(
+        "view", description="Subcommand to view items."
+    )
     view_subparser.set_defaults(func=view)
-    add_subparser = subparsers.add_parser("add")
+    add_subparser = subparsers.add_parser(
+        "add", description="Subcommand to add an item."
+    )
     add_subparser.add_argument(
         "-n",
         "--name",
@@ -355,7 +359,9 @@ def main(argv: list[str]):
         help="item assigned",
     )
     add_subparser.set_defaults(func=add)
-    assign_subparser = subparsers.add_parser("assign")
+    assign_subparser = subparsers.add_parser(
+        "assign", description="Subcommand to assign an item."
+    )
     assign_subparser.add_argument(
         "-i",
         "--id",
@@ -369,7 +375,9 @@ def main(argv: list[str]):
         help="item assigned",
     )
     assign_subparser.set_defaults(func=assign)
-    delete_subparser = subparsers.add_parser("delete")
+    delete_subparser = subparsers.add_parser(
+        "delete", description="Subcommand to delete an item."
+    )
     delete_subparser.add_argument(
         "-i",
         "--id",
@@ -377,7 +385,9 @@ def main(argv: list[str]):
         help="item id",
     )
     delete_subparser.set_defaults(func=delete)
-    unassign_subparser = subparsers.add_parser("unassign")
+    unassign_subparser = subparsers.add_parser(
+        "unassign", description="Subcommand to unassign an item."
+    )
     unassign_subparser.add_argument(
         "-i",
         "--id",
@@ -385,7 +395,9 @@ def main(argv: list[str]):
         help="item id",
     )
     unassign_subparser.set_defaults(func=unassign)
-    link_subparser = subparsers.add_parser("link")
+    link_subparser = subparsers.add_parser(
+        "link", description="Subcommand to update the link of an item."
+    )
     link_subparser.add_argument(
         "-i",
         "--id",
