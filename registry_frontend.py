@@ -63,9 +63,11 @@ def view_items(url: str, token: str, console: Console):
             item["name"],
             item["colour"],
             f'[link={item["link"]}]{item["link"]}[/link]',
-            item["assigned"]
-            if item["assigned"] is not None
-            else "[bold reverse]unassigned[/bold reverse]",
+            (
+                item["assigned"]
+                if item["assigned"] is not None
+                else "[bold reverse]unassigned[/bold reverse]"
+            ),
         )
 
     console.print(table)
@@ -120,9 +122,7 @@ def assign_item(
     if id is None:
         id = int(Prompt.ask("[yellow]Enter item id[/yellow]", choices=ids))
     if assigned is None:
-        assigned = Prompt.ask(
-            "[yellow]Enter item assigned, or leave empty for unassigned[/yellow]"
-        )
+        assigned = Prompt.ask("[yellow]Enter item assigned[/yellow]")
 
     request = requests.post(
         f"{url}/api/v1/items/{id}/claim",
